@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海龟汤 - 谜题馆</title>
+<style>
+:root{--bg:#0a0a12;--c0:#8b5cf6;--c1:#a78bfa;--c2:#d4a853;--c3:#f0d78c;--c4:#e879a8;--tx:#e2e0e7;--td:#9895a5;--card-bg:rgba(22,15,40,0.88);--card-bk:rgba(30,18,48,0.9);--modal-bg:rgba(22,15,40,0.95);--btn-bg:rgba(139,92,246,0.1);--glow:rgba(139,92,246,0.15);--border:rgba(139,92,246,0.25);--particle-opacity:0.12}
+.light{--bg:#f5f3ff;--c0:#7c3aed;--c1:#6d28d9;--c2:#b8860b;--c3:#a67908;--c4:#db2777;--tx:#1e1b4b;--td:#6b7280;--card-bg:rgba(255,255,255,0.9);--card-bk:rgba(255,248,240,0.92);--modal-bg:rgba(255,255,255,0.95);--btn-bg:rgba(124,58,237,0.08);--glow:rgba(124,58,237,0.08);--border:rgba(124,58,237,0.2);--particle-opacity:0.06}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;display:flex;align-items:center;justify-content:center;transition:background 0.4s,color 0.4s}
+body::before{content:'';position:fixed;top:-50%;left:-20%;width:80vw;height:150vh;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center,var(--glow) 0%,transparent 70%);transition:background 0.4s}
+body::after{content:'';position:fixed;top:-30%;right:-15%;width:60vw;height:120vh;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center,rgba(212,168,83,0.04) 0%,transparent 70%)}
+.particles{position:fixed;inset:0;pointer-events:none;z-index:0}
+.particle{position:absolute;border-radius:50%;animation:floatUp linear infinite;opacity:0}
+@keyframes floatUp{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:0.6}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 20px;pointer-events:none}
+.top-bar>*{pointer-events:auto}
+.top-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--btn-bg);color:var(--td);cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;font-size:0.9rem;backdrop-filter:blur(8px)}
+.top-btn:hover{color:var(--tx);border-color:var(--c1);box-shadow:0 0 12px var(--glow)}
+.top-btn.fs-sm{font-size:0.65rem}.top-btn.fs-lg{font-size:1.1rem}
+.main-container{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;max-width:1100px;min-height:100vh;padding:50px 24px 40px;gap:32px}
+.character-panel{flex:0 0 38%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.character-stage{position:relative;width:100%;max-width:380px;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:visible}
+.halo-ring{position:absolute;width:90%;aspect-ratio:1;border-radius:50%;border:1px solid var(--border);box-shadow:0 0 40px var(--glow),inset 0 0 40px rgba(139,92,246,0.03);transition:border-color 0.3s}
+.char-img-wrap{position:relative;width:85%;aspect-ratio:3/4;z-index:2;cursor:pointer;filter:drop-shadow(0 6px 20px var(--glow))}
+.char-img-wrap:hover{transform:scale(1.03);filter:drop-shadow(0 8px 28px rgba(139,92,246,0.45))}
+.char-img-wrap:active{transform:scale(0.95)}
+.char-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;transition:opacity 0.6s cubic-bezier(0.4,0,0.2,1)}
+.char-img.char-img-front{z-index:2;opacity:1}
+.char-img.char-img-back{z-index:1;opacity:0}
+.char-img.char-img-front.fading{opacity:0}
+.char-img.char-img-back.showing{opacity:1}
+.char-dots{display:flex;gap:8px;margin-top:12px}
+.char-dot{width:8px;height:8px;border-radius:50%;background:rgba(139,92,246,0.25);cursor:pointer;transition:all 0.3s}
+.char-dot.active{background:var(--c1);box-shadow:0 0 8px rgba(139,92,246,0.5);width:20px;border-radius:4px}
+.character-name{margin-top:8px;font-size:1.4rem;font-weight:700;letter-spacing:0.06em;background:linear-gradient(135deg,var(--c1),var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;transition:all 0.3s}
+.character-title{font-size:0.82rem;color:var(--td);letter-spacing:0.12em;margin-top:2px}
+.card-panel{flex:0 0 58%;display:flex;flex-direction:column;align-items:center;gap:14px}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.filter-btn{padding:5px 14px;border-radius:16px;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;cursor:pointer;transition:all 0.3s;border:1px solid var(--border);background:var(--btn-bg);color:var(--td);font-family:inherit}
+.filter-btn:hover,.filter-btn.active{border-color:var(--c1);color:var(--c1);box-shadow:0 0 10px var(--glow)}
+.filter-btn.active{background:rgba(139,92,246,0.15)}
+.filter-count{font-size:0.68rem;color:var(--td);opacity:0.6}
+.tag-badge{display:inline-block;padding:6px 18px;border-radius:20px;font-size:0.82rem;font-weight:600;letter-spacing:0.05em;background:rgba(139,92,246,0.15);border:1px solid var(--border);color:var(--c1);transition:all 0.4s ease}
+.tag-badge.suspense{color:#c084fc;border-color:rgba(192,132,252,0.4);background:rgba(192,132,252,0.12)}
+.tag-badge.warmth{color:#fbbf80;border-color:rgba(251,191,128,0.4);background:rgba(251,191,128,0.12)}
+.tag-badge.horror{color:#f87171;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.12)}
+.tag-badge.scifi{color:#60a5fa;border-color:rgba(96,165,250,0.4);background:rgba(96,165,250,0.12)}
+.tag-badge.funny{color:#facc15;border-color:rgba(250,204,21,0.4);background:rgba(250,204,21,0.12)}
+.tag-badge.uploaded{color:#a78bfa;border-color:rgba(167,139,250,0.5);background:rgba(167,139,250,0.15);border-style:dashed}
+.card-scene{width:100%;max-width:520px;aspect-ratio:5/3.5;perspective:1000px;cursor:pointer}
+.card-inner{width:100%;height:100%;position:relative;transition:transform 0.7s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d}
+.card-inner.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;padding:36px 32px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.card-front{background:var(--card-bg);border:1px solid var(--border);box-shadow:0 8px 48px rgba(0,0,0,0.5),0 0 40px var(--glow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.card-front::before{content:'';position:absolute;top:-1px;left:30px;right:30px;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.5),transparent)}
+.card-back{background:var(--card-bk);border:1px solid rgba(212,168,83,0.3);box-shadow:0 8px 48px rgba(0,0,0,0.5),0 0 50px rgba(212,168,83,0.1);transform:rotateY(180deg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.card-back::before{content:'';position:absolute;top:-1px;left:30px;right:30px;height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,83,0.5),transparent)}
+.card-face::after{content:'';position:absolute;inset:8px;border-radius:14px;border:1px solid rgba(255,255,255,0.04);pointer-events:none}
+.card-label{font-size:0.8rem;letter-spacing:0.2em;color:var(--td);margin-bottom:16px}
+.card-front .card-label{color:var(--c1)}
+.card-back .card-label{color:var(--c3)}
+.card-content{font-size:1.12rem;line-height:1.9;color:var(--tx);max-height:100%;overflow-y:auto;transition:font-size 0.3s}
+body.fs-sm .card-content{font-size:0.95rem}
+body.fs-lg .card-content{font-size:1.3rem}
+.card-back .card-content{color:#e8d5b0;font-size:1.05rem}
+body.fs-sm .card-back .card-content{font-size:0.88rem}
+body.fs-lg .card-back .card-content{font-size:1.2rem}
+.card-hint{position:absolute;bottom:16px;right:24px;font-size:0.75rem;color:rgba(255,255,255,0.2);letter-spacing:0.08em}
+.card-upload-badge{position:absolute;top:16px;right:24px;font-size:0.7rem;color:rgba(167,139,250,0.6);display:none}
+.card-upload-badge.show{display:block}
+.card-actions{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:5}
+.btn-fav,.btn-copy,.btn-delete-upload{font-size:0.75rem;color:rgba(255,255,255,0.25);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:10px;transition:all 0.3s;font-family:inherit}
+.btn-fav:hover,.btn-copy:hover{color:var(--c3)}
+.btn-fav.faved{color:#facc15}
+.btn-delete-upload{color:rgba(255,100,100,0.35);display:none;position:static}
+.btn-delete-upload.show{display:block}
+.btn-delete-upload:hover{color:#f87171;background:rgba(248,113,113,0.1)}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.btn-next,.btn-upload,.btn-favs{padding:10px 22px;font-size:0.9rem;font-weight:600;letter-spacing:0.05em;color:var(--tx);background:var(--btn-bg);border:1px solid var(--border);border-radius:30px;cursor:pointer;transition:all 0.35s ease;backdrop-filter:blur(8px);position:relative;overflow:hidden;font-family:inherit}
+.btn-upload{border-color:rgba(212,168,83,0.35);background:rgba(212,168,83,0.08)}
+.btn-upload:hover{border-color:rgba(212,168,83,0.6);box-shadow:0 0 30px rgba(212,168,83,0.2)}
+.btn-next::before,.btn-upload::before,.btn-favs::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.35s}
+.btn-next::before{background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(212,168,83,0.1))}
+.btn-upload::before{background:linear-gradient(135deg,rgba(212,168,83,0.15),rgba(139,92,246,0.1))}
+.btn-favs::before{background:linear-gradient(135deg,rgba(250,204,21,0.15),rgba(212,168,83,0.1))}
+.btn-next:hover,.btn-upload:hover,.btn-favs:hover{transform:translateY(-2px)}
+.btn-next:hover{border-color:var(--c1);box-shadow:0 0 30px var(--glow),0 0 60px rgba(139,92,246,0.08)}
+.btn-next:hover::before,.btn-upload:hover::before,.btn-favs:hover::before{opacity:1}
+.btn-next:active,.btn-upload:active,.btn-favs:active{transform:scale(0.96)}
+.btn-favs{font-size:0.82rem;padding:8px 18px;border-color:rgba(250,204,21,0.3);background:rgba(250,204,21,0.06)}
+.btn-favs:hover{border-color:rgba(250,204,21,0.6);box-shadow:0 0 20px rgba(250,204,21,0.15)}
+.upload-count{font-size:0.7rem;color:rgba(212,168,83,0.6);letter-spacing:0.05em;margin-top:-10px}
+.counter{font-size:0.78rem;color:var(--td);letter-spacing:0.05em}
+.fav-sidebar{position:fixed;top:0;right:-380px;width:360px;max-width:90vw;height:100vh;z-index:90;background:var(--card-bg);backdrop-filter:blur(20px);border-left:1px solid var(--border);transition:right 0.4s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:-8px 0 40px rgba(0,0,0,0.5)}
+.fav-sidebar.open{right:0}
+.fav-sidebar-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border)}
+.fav-sidebar-header h3{font-size:1.1rem;color:var(--c3)}
+.fav-sidebar-close{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--btn-bg);color:var(--td);cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;font-size:0.9rem}
+.fav-sidebar-close:hover{color:var(--tx);border-color:var(--c1)}
+.fav-list{flex:1;overflow-y:auto;padding:12px}
+.fav-item{background:var(--btn-bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all 0.3s;position:relative}
+.fav-item:hover{border-color:var(--c1);box-shadow:0 0 12px var(--glow)}
+.fav-item .fav-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.65rem;font-weight:600;margin-bottom:6px;background:rgba(139,92,246,0.15);color:var(--c1)}
+.fav-item .fav-text{font-size:0.85rem;color:var(--tx);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fav-item .fav-remove{position:absolute;top:8px;right:10px;font-size:0.7rem;color:rgba(255,100,100,0.4);cursor:pointer;padding:2px 6px;border-radius:8px;transition:all 0.3s}
+.fav-item .fav-remove:hover{color:#f87171;background:rgba(248,113,113,0.1)}
+.fav-empty{text-align:center;color:var(--td);padding:40px 20px;font-size:0.9rem}
+.sidebar-overlay{position:fixed;inset:0;z-index:89;background:rgba(0,0,0,0.4);opacity:0;pointer-events:none;transition:opacity 0.3s}
+.sidebar-overlay.open{opacity:1;pointer-events:auto}
+.guide-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:opacity 0.4s;opacity:1}
+.guide-overlay.hidden{opacity:0;pointer-events:none}
+.guide-card{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:36px 32px;max-width:460px;width:90%;text-align:center;box-shadow:0 16px 64px rgba(0,0,0,0.6)}
+.guide-card h2{font-size:1.6rem;margin-bottom:6px;background:linear-gradient(135deg,var(--c1),var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.guide-steps{display:flex;flex-direction:column;gap:16px;margin:24px 0}
+.guide-step{display:flex;align-items:center;gap:14px;text-align:left;padding:12px 16px;background:var(--btn-bg);border-radius:12px;border:1px solid var(--border);transition:all 0.3s}
+.guide-step .gs-icon{font-size:2rem;flex-shrink:0}
+.guide-step .gs-text{font-size:0.9rem;color:var(--tx);line-height:1.5}
+.guide-step .gs-text strong{color:var(--c1)}
+.guide-btn{padding:12px 36px;border-radius:24px;font-size:1rem;font-weight:600;cursor:pointer;border:none;background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(212,168,83,0.2));color:var(--tx);font-family:inherit;transition:all 0.3s}
+.guide-btn:hover{box-shadow:0 0 24px var(--glow);transform:translateY(-2px)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity 0.35s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-box{background:var(--modal-bg);border:1px solid var(--border);border-radius:20px;padding:32px 28px;max-width:520px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 16px 64px rgba(0,0,0,0.6),0 0 60px var(--glow);position:relative}
+.modal-box h3{font-size:1.3rem;margin-bottom:6px;background:linear-gradient(135deg,var(--c1),var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.modal-sub{font-size:0.8rem;color:var(--td);margin-bottom:20px}
+.modal-field{margin-bottom:18px}
+.modal-field label{display:block;font-size:0.85rem;font-weight:600;color:var(--td);margin-bottom:6px;letter-spacing:0.05em}
+.modal-field textarea{width:100%;padding:14px 16px;background:rgba(10,10,18,0.6);border:1px solid var(--border);border-radius:12px;color:var(--tx);font-size:0.95rem;line-height:1.7;resize:vertical;min-height:80px;font-family:inherit;transition:border-color 0.3s}
+.light .modal-field textarea{background:rgba(0,0,0,0.03)}
+.modal-field textarea:focus{outline:none;border-color:var(--c1);box-shadow:0 0 16px var(--glow)}
+.modal-field textarea::placeholder{color:rgba(255,255,255,0.15)}
+.modal-settings{display:flex;flex-direction:column;gap:12px}
+.modal-settings button{padding:10px 20px;border-radius:20px;font-size:0.85rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--btn-bg);color:var(--tx);font-family:inherit;transition:all 0.3s}
+.modal-settings button:hover{border-color:var(--c1);box-shadow:0 0 12px var(--glow)}
+.modal-tag-preview{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:0.82rem}
+.modal-tag-preview span{color:var(--td)}
+.modal-tag-preview .tag-preview-badge{padding:4px 14px;border-radius:14px;font-weight:600;font-size:0.78rem}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+.modal-btns button{padding:10px 24px;border-radius:24px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.3s;border:1px solid transparent;font-family:inherit}
+.modal-btn-cancel{background:transparent;color:var(--td);border-color:rgba(255,255,255,0.15)}
+.modal-btn-cancel:hover{color:var(--tx);border-color:rgba(255,255,255,0.3)}
+.modal-btn-submit{background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(212,168,83,0.2));color:var(--tx);border-color:var(--border)}
+.modal-btn-submit:hover{box-shadow:0 0 24px var(--glow);border-color:var(--c1)}
+.modal-btn-submit:disabled{opacity:0.4;cursor:not-allowed}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.05);border:none;color:var(--td);font-size:1.1rem;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:rgba(255,255,255,0.1);color:var(--tx)}
+.char-count{font-size:0.7rem;color:var(--td);text-align:right;margin-top:4px}
+.char-count.warn{color:#f87171}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:200;padding:12px 28px;border-radius:24px;font-size:0.9rem;font-weight:600;background:rgba(30,18,48,0.95);border:1px solid var(--border);color:var(--tx);box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:toastIn 0.4s ease-out,toastOut 0.3s 2.5s ease-in forwards;pointer-events:none}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+.sparkle{position:absolute;pointer-events:none;animation:sparkleBurst 0.7s ease-out forwards;z-index:999}
+@keyframes sparkleBurst{0%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(0) translateY(-40px);opacity:0}}
+@media(max-width:768px){.main-container{flex-direction:column;gap:12px;padding:50px 12px 24px}.character-panel{flex:0 0 auto;width:100%}.character-stage{max-width:180px}.character-name{font-size:1.1rem}.card-panel{flex:1 1 auto;width:100%}.card-scene{max-width:100%;aspect-ratio:4/3.2}.card-face{padding:20px 16px}.card-content{font-size:0.9rem;line-height:1.7}.top-bar{padding:8px 12px}.top-btn{width:28px;height:28px;font-size:0.75rem}.filter-btn{font-size:0.7rem;padding:4px 10px}.fav-sidebar{width:300px}}
+@media(max-width:400px){.character-stage{max-width:140px}.card-scene{aspect-ratio:3/4}.card-content{font-size:0.8rem}.btn-row{flex-direction:column;gap:6px}.filter-bar{gap:4px}}
+.card-content::-webkit-scrollbar,.modal-box::-webkit-scrollbar,.fav-list::-webkit-scrollbar{width:4px}
+.card-content::-webkit-scrollbar-track,.modal-box::-webkit-scrollbar-track,.fav-list::-webkit-scrollbar-track{background:transparent}
+.card-content::-webkit-scrollbar-thumb,.modal-box::-webkit-scrollbar-thumb,.fav-list::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.25);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+<div class="top-bar">
+<button class="top-btn" id="btnTheme" title="明暗模式">🌓</button>
+<button class="top-btn fs-sm" id="btnFSsmall" title="小字">A</button>
+<button class="top-btn" id="btnFSmid" title="中字">A</button>
+<button class="top-btn fs-lg" id="btnFSbig" title="大字">A</button>
+<button class="top-btn" id="btnSettings" title="设置">⚙</button>
+</div>
+<div class="guide-overlay" id="guideOverlay">
+<div class="guide-card">
+<h2>🎭 欢迎来到谜题馆</h2>
+<div class="guide-steps">
+<div class="guide-step"><span class="gs-icon">🃏</span><span class="gs-text"><strong>点击卡片</strong>翻转查看汤底</span></div>
+<div class="guide-step"><span class="gs-icon">👆</span><span class="gs-text"><strong>单击角色</strong>切换表情，<strong>双击</strong>换人</span></div>
+<div class="guide-step"><span class="gs-icon">⌨</span><span class="gs-text"><strong>空格翻牌</strong>，<strong>→键换题</strong></span></div>
+</div>
+<button class="guide-btn" id="btnGuideOK">开始探索 ✨</button>
+</div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="fav-sidebar" id="favSidebar">
+<div class="fav-sidebar-header"><h3>⭐ 我的收藏</h3><button class="fav-sidebar-close" id="favSidebarClose">✕</button></div>
+<div class="fav-list" id="favList"><div class="fav-empty">还没有收藏哦～<br>点卡片上的 ♡ 收藏喜欢的题目吧</div></div>
+</div>
+<div class="main-container">
+<div class="character-panel">
+<div class="character-stage" id="characterStage">
+<div class="halo-ring"></div>
+<div class="char-img-wrap" id="charWrap" title="单击切换表情，双击换人">
+<img src="images/loli_raw_nobg.png" class="char-img char-img-front" id="charImgA">
+<img src="images/loli_raw_nobg.png" class="char-img char-img-back" id="charImgB">
+</div>
+</div>
+<div class="char-dots" id="charDots"></div>
+<div class="character-name" id="charName">小汤</div>
+<div class="character-title">单击表情 · 双击换人</div>
+</div>
+<div class="card-panel">
+<div class="filter-bar" id="filterBar"></div>
+<div class="tag-badge suspense" id="tagBadge">#悬疑</div>
+<div class="card-scene" id="cardScene">
+<div class="card-inner" id="cardInner">
+<div class="card-face card-front">
+<div class="card-actions">
+<button class="btn-fav" id="btnFav" title="收藏">♡</button>
+<button class="btn-copy" id="btnCopy" title="复制汤面">📋</button>
+<button class="btn-delete-upload" id="btnDeleteUpload" title="删除此题">✕</button>
+</div>
+<div class="card-label">✦ 汤面 ✦</div>
+<div class="card-content" id="cardFrontText"></div>
+<div class="card-hint">点击翻转查看汤底</div>
+</div>
+<div class="card-face card-back">
+<div class="card-label">✦ 汤底 ✦</div>
+<div class="card-content" id="cardBackText"></div>
+<div class="card-hint">点击翻转返回汤面</div>
+<div class="card-upload-badge" id="uploadBadge">📤 投稿</div>
+</div>
+</div>
+</div>
+<div class="btn-row">
+<button class="btn-next" id="btnNext">🔮 换一题</button>
+<button class="btn-upload" id="btnOpenUpload">📤 我要出题</button>
+<button class="btn-favs" id="btnOpenFavs">⭐ 收藏夹</button>
+</div>
+<div class="upload-count" id="uploadCount"></div>
+<div class="counter" id="counter"></div>
+</div>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal-box">
+<button class="modal-close" id="modalClose">✕</button>
+<h3>📤 贡献你的海龟汤</h3>
+<p class="modal-sub">写下汤面和汤底，自动分类标签</p>
+<div class="modal-field"><label>汤面（谜面）</label><textarea id="inputFront" placeholder="谜面..." maxlength="500"></textarea><div class="char-count" id="frontCount">0 / 500</div></div>
+<div class="modal-field"><label>汤底（真相）</label><textarea id="inputBack" placeholder="真相..." maxlength="800"></textarea><div class="char-count" id="backCount">0 / 800</div></div>
+<div class="modal-tag-preview"><span>自动标签：</span><span class="tag-preview-badge suspense" id="tagPreviewBadge">悬疑</span></div>
+<div class="modal-btns"><button class="modal-btn-cancel" id="modalCancel">取消</button><button class="modal-btn-submit" id="modalSubmit" disabled>确认上传 ✨</button></div>
+</div>
+</div>
+<div class="modal-overlay" id="settingsOverlay">
+<div class="modal-box">
+<button class="modal-close" id="settingsClose">✕</button>
+<h3>⚙ 设置</h3>
+<p class="modal-sub">管理你的数据</p>
+<div class="modal-settings">
+<button id="btnExport">💾 导出投稿题目 (JSON)</button>
+<button id="btnImport">📥 导入投稿题目 (JSON)</button>
+<button id="btnClearFavs" style="border-color:rgba(248,113,113,0.3);color:#f87171">🗑 清空收藏夹</button>
+<button id="btnClearUploads" style="border-color:rgba(248,113,113,0.3);color:#f87171">🗑 清空所有投稿</button>
+<button id="btnResetGuide" style="border-color:rgba(250,204,21,0.3);color:#facc15">📖 重新显示引导</button>
+</div>
+<input type="file" id="importFile" accept=".json" style="display:none">
+</div>
+</div>
+<script>
+var theme='dark',fontSize='mid',currFilter='all';
+var charIndex=0,cur=-1,used=[],fl=false,currPuzIdx=-1;
+var cw=document.getElementById('charWrap'),cImgA=document.getElementById('charImgA'),cImgB=document.getElementById('charImgB'),frontActive=true;
+var characters=[
+{name:'小汤',idle:'images/loli_raw_nobg.png',emotions:{tsundere:'images/loli_tsundere_nobg.png',angry:'images/loli_angry_nobg.png',cute:'images/loli_cute_nobg.png',moe:'images/loli_moe_nobg.png',cry:'images/loli_cry_nobg.png'}},
+{name:'粉发泳装',idle:'images/char_bikini_1_nobg.png',emotions:{tsundere:'images/char_bikini_1_nobg.png',angry:'images/bikini1_angry_nobg.png',cute:'images/bikini1_cute_nobg.png',moe:'images/bikini1_moe_nobg.png',cry:'images/bikini1_cry_nobg.png'}},
+{name:'紫发泳装',idle:'images/char_bikini_4_nobg.png',emotions:{tsundere:'images/char_bikini_4_nobg.png',angry:'images/bikini4_angry_nobg.png',cute:'images/bikini4_cute_nobg.png',moe:'images/bikini4_moe_nobg.png',cry:'images/bikini4_cry_nobg.png'}},
+{name:'银发高叉',idle:'images/char_silver_nobg.png',emotions:{tsundere:'images/silver_tsundere_nobg.png',angry:'images/silver_angry_nobg.png',cute:'images/char_silver_nobg.png',moe:'images/silver_moe_nobg.png',cry:'images/silver_cry_nobg.png'}},
+{name:'金发长裙',idle:'images/char_blonde_nobg.png',emotions:{tsundere:'images/blonde_tsundere_nobg.png',angry:'images/blonde_angry_nobg.png',cute:'images/blonde_cute_nobg.png',moe:'images/blonde_moe_nobg.png',cry:'images/blonde_cry_nobg.png'}},
+{name:'棕发礼服',idle:'images/char_brunette_nobg.png',emotions:{tsundere:'images/brunette_tsundere_nobg.png',angry:'images/brunette_angry_nobg.png',cute:'images/brunette_cute_nobg.png',moe:'images/brunette_moe_nobg.png',cry:'images/brunette_cry_nobg.png'}}
+];
+var emotionNames=['idle','tsundere','angry','cute','moe','cry'],currentEmotion=0;
+var cn=document.getElementById('charName'),cd=document.getElementById('charDots');
+function buildDots(){cd.innerHTML='';for(var i=0;i<characters.length;i++){var d=document.createElement('div');d.className='char-dot'+(i===charIndex?' active':'');d.setAttribute('data-i',i);d.title=characters[i].name;d.addEventListener('click',function(e){switchTo(parseInt(e.target.getAttribute('data-i')))});cd.appendChild(d)}}
+function updateDots(){var ds=cd.querySelectorAll('.char-dot');for(var i=0;i<ds.length;i++)ds[i].className='char-dot'+(i===charIndex?' active':'')}
+function switchTo(i){if(i===charIndex&&currentEmotion===0)return;charIndex=i;currentEmotion=0;doCrossfade(characters[i].idle);cn.textContent=characters[i].name;updateDots()}
+function getCharImg(c,em){if(em===0)return c.idle;var en=emotionNames[em];return c.emotions[en]||c.idle}
+function doCrossfade(src){if(frontActive){cImgB.src=src;cImgA.classList.add('fading');cImgB.classList.add('showing');setTimeout(function(){cImgA.src=src;cImgA.classList.remove('fading');cImgB.classList.remove('showing')},620)}else{cImgA.src=src;cImgB.classList.add('fading');cImgA.classList.add('showing');setTimeout(function(){cImgB.src=src;cImgB.classList.remove('fading');cImgA.classList.remove('showing')},620)}frontActive=!frontActive}
+function cycleEmotion(){currentEmotion=(currentEmotion+1)%emotionNames.length;doCrossfade(getCharImg(characters[charIndex],currentEmotion));cn.textContent=characters[charIndex].name+(currentEmotion>0?' - '+['傲娇','生气','可爱','卖萌','哭泣'][currentEmotion-1]:'')}
+function nextChar(){currentEmotion=0;switchTo((charIndex+1)%characters.length)}
+function prevChar(){currentEmotion=0;switchTo((charIndex-1+characters.length)%characters.length)}
+function randomChar(){var i;do{i=Math.floor(Math.random()*characters.length)}while(i===charIndex);switchTo(i)}
+var tagRules=[
+{tag:'恐怖',cls:'horror',kw:['死','杀','血','尸体','鬼','恐怖','害怕','惨叫','消失','失踪','黑暗','噩梦','诅咒','诡异','腐烂','棺材','幽灵','恶魔']},
+{tag:'悬疑',cls:'suspense',kw:['警察','侦探','谜','奇怪','为什么','发现','突然','秘密','真相','凶手','犯人','动机','案件','线索','证据','推理','调查','监控','录音']},
+{tag:'温情',cls:'warmth',kw:['爱','妈妈','爸爸','孩子','眼泪','哭','感动','温暖','守护','陪伴','家人','朋友','恋人','婚礼','生日','礼物','拥抱','微笑','幸福']},
+{tag:'科幻',cls:'scifi',kw:['机器','科学','未来','时空','宇宙','外星','实验','发明','AI','虚拟','克隆','基因','穿越','太空','机器人']},
+{tag:'搞笑',cls:'funny',kw:['笑','搞笑','幽默','滑稽','反转','文字游戏','开玩笑','恶作剧','笑死','逗','捉弄','调皮','玩笑']}
+];
+function autoTag(f,b){var t=(f+' '+b).toLowerCase(),best=null,bs=0;for(var i=0;i<tagRules.length;i++){var r=tagRules[i],s=0;for(var j=0;j<r.kw.length;j++)if(t.indexOf(r.kw[j].toLowerCase())!==-1)s++;if(s>bs){bs=s;best=r}}return best||{tag:'悬疑',cls:'suspense'}}
+var builtin=[
+{front:'一个女人在房间里醒来，发现自己在一张陌生的床上。床边的桌子上有一杯水和一张纸条。纸条上写着："你喝下的是毒药，解药就在这杯水里。"女人沉默了几秒，然后喝下了那杯水。为什么？',back:'女人早已想自杀，喝下毒药醒来发现没死。纸条和房间是她昏迷时的幻觉，她其实在ICU，护士正在给她喂水。但更黑暗的版本：毒药是假的，那杯水才是真正有毒的。',tag:'悬疑',tagClass:'suspense',up:false},
+{front:'一个男人走进一家酒吧，点了一杯水。调酒师拿出一把枪指着男人。男人说"谢谢"，然后离开了酒吧。发生了什么？',back:'男人患有严重打嗝，点水是想用喝水止嗝。调酒师看出这一点，用枪吓唬他——强烈的惊吓瞬间治好打嗝。男人道谢离开。',tag:'温情',tagClass:'warmth',up:false},
+{front:'深夜，一个女人独自在家。电话响了，她接起来，对方没有声音。几秒后挂断。一分钟后电话又响了，再次没有声音。如此反复五次。第二天早上，她发现了一件可怕的事。',back:'她养的宠物鸟学会了模仿电话铃声。每次鸟叫时她接起电话，鸟就沉默了。第二天她发现鸟笼是空的——鸟其实昨晚已死。电话铃声来自阁楼，一直有人躲在上面模仿鸟叫。',tag:'恐怖',tagClass:'horror',up:false},
+{front:'火车上，一个女人坐在窗边，对面的男人一直盯着她看。她很不舒服。过了一阵男人站起身说："对不起，我看你是因为你很像我的女儿。她十年前去世了。"女人松了口气，但紧接着意识到一件可怕的事。',back:'男人说女儿十年前去世时才10岁，如果活着今年该20岁。但女人今年30岁——她不可能长得像一个10岁的孩子。除非…女人童年照片与男人女儿长得一模一样。',tag:'恐怖',tagClass:'horror',up:false},
+{front:'一个男人站在楼顶想要跳楼。一个女人路过看见了，对他喊了一句话。男人听后露出了微笑，然后还是跳了下去。警察来了之后，女人被判了刑。她喊了什么？',back:'女人喊的是"我也想跳"——男人微笑以为找到了同伴。但这是一场复仇：女人认出男人是害死她全家的凶手，她用一句共情的话完成了完美的无痕教唆杀人。',tag:'悬疑',tagClass:'suspense',up:false},
+{front:'"盲人"走进便利店，买了一盒图钉，然后走出去将图钉撒在人行道上。为什么？',back:'他不是盲人，而是卧底警察。图钉用来标记跟踪目标的路线——其他队员追踪地上的血迹找到目标。',tag:'悬疑',tagClass:'suspense',up:false},
+{front:'小明过生日，收到一个精致的小盒子。打开一看，里面是空的。小明哭了。为什么？',back:'小明天生失明，今天是他眼角膜移植手术后第一天看到世界。盒子不是空的——里面装着一面镜子。小明第一次看到镜子中自己的脸，激动得哭了。',tag:'温情',tagClass:'warmth',up:false},
+{front:'一个男人深夜回家，经过一条小巷听到微弱的求救声。他走了进去。第二天，尸体在小巷深处被发现，死于心脏病发作。但现场有他杀痕迹。怎么回事？',back:'求救声是录音机播放的诱饵。凶手将男人引入布满镜子的暗室，手电筒强光突然照在他脸上——镜中几十个狰狞的倒影让他心理崩溃、心脏病发作。心理谋杀。',tag:'恐怖',tagClass:'horror',up:false},
+{front:'一对情侣去雪山滑雪遭遇暴风雪，躲进山洞。男人出去找食物后失踪。三天后女人被救援队找到。从此她开始吃素，再也不吃红肉。为什么？',back:'救援时女人已经靠吃"野味"活了三天。但救援队告诉她：这个区域根本没有大型动物可以捕猎。男人带回来的肉，是他自己身上的。',tag:'恐怖',tagClass:'horror',up:false},
+{front:'科学家发明了一台可以看到十年后自己的机器。成千上万人排队体验。几个月后，各国政府联合封禁了这台机器。为什么？',back:'因为绝大多数人看到的十年后的自己——是静止不动的。也就是说，这些人活不过十年。社会陷入巨大恐慌。',tag:'科幻',tagClass:'scifi',up:false},
+{front:'一个老人在公园长椅上坐着，一个小男孩跑过来坐在旁边。老人给男孩讲了一个精彩的故事。男孩问："能再说一次吗？"老人笑着又讲了一遍。男孩说："谢谢爷爷！"然后跑开了。老人流下了眼泪。为什么？',back:'老人患有阿尔茨海默症，他认不出自己的孙子。但当男孩叫他"爷爷"的那一瞬间，他什么都想起来了——然后马上又忘了。',tag:'温情',tagClass:'warmth',up:false},
+{front:'女孩和男孩网恋三年，终于决定见面。在约好的餐厅，女孩等了整整一天，男孩没有来。女孩伤心回家，看到男孩留言："对不起，我今天去了，却不敢见你。"一周后她知道真相，哭了整整一夜。',back:'男孩患有渐冻症，只能坐在轮椅上。那天他坐在角落里默默看了女孩一整天，却没有勇气让她认识真实的自己。一周后男孩已去世。',tag:'温情',tagClass:'warmth',up:false},
+{front:'小明从小怕黑，每晚都要开灯睡。爸爸想了一个办法，在黑暗中不停地叫小明的名字，告诉他爸爸就在身边。慢慢地小明不再怕黑了。有天半夜灯灭了，黑暗中听到爸爸在叫他，他安心地又睡着了。第二天早上，爸爸躺在他身边，已死去很久。',back:'爸爸身患绝症，设了录音每隔几分钟播放自己的声音。那晚爸爸其实已经过世了，但录音里的温暖帮他驱散了最后的恐惧。父爱从未离开。',tag:'温情',tagClass:'warmth',up:false},
+{front:'一个著名魔术师宣布他将在众目睽睽之下"从地球上消失十分钟"。帷幕落下十秒后再拉开——他真的消失了。但观众并不惊讶，反而笑了笑。为什么？',back:'他用文字游戏骗了大家——帷幕落下时他快速钻进火箭发射升空，去了国际空间站。他在太空中待了十分钟，成了第一个在太空"消失"的魔术师。',tag:'搞笑',tagClass:'funny',up:false},
+{front:'一个男人发现自己在机场醒来，全身是伤，手里紧攥着一张去陌生城市的机票。手机里二十多个未接来电全来自同一个陌生号码。他完全不记得过去一周发生了什么。他拨回那个号码，对方说了一句话，他崩溃了。',back:'过去一周妻子在车祸中去世，他因创伤失忆并反复逃出医院冲向机场。机票的目的地——是妻子生前最想去的那座城市。陌生号码是医院太平间打来的。',tag:'悬疑',tagClass:'suspense',up:false}
+];
+function loadUp(){try{var d=localStorage.getItem('ht_up');return d?JSON.parse(d):[]}catch(e){return[]}}
+function saveUp(a){try{localStorage.setItem('ht_up',JSON.stringify(a))}catch(e){showToast('存储空间不足')}}
+function allP(){var pool=builtin.concat(loadUp());if(currFilter==='all')return pool;return pool.filter(function(p){return p.tagClass===currFilter})}
+function loadFavs(){try{var d=localStorage.getItem('ht_fav');return d?JSON.parse(d):[]}catch(e){return[]}}
+function saveFavs(a){try{localStorage.setItem('ht_fav',JSON.stringify(a))}catch(e){showToast('收藏夹已满')}}
+function isFaved(puz){if(!puz)return false;var favs=loadFavs();for(var i=0;i<favs.length;i++)if(favs[i].front===puz.front&&favs[i].back===puz.back)return true;return false}
+function toggleFav(puz){var favs=loadFavs();for(var i=0;i<favs.length;i++){if(favs[i].front===puz.front&&favs[i].back===puz.back){favs.splice(i,1);saveFavs(favs);updateFavBtn();renderFavs();showToast('已取消收藏');return}}favs.push({front:puz.front,back:puz.back,tag:puz.tag,tagClass:puz.tagClass});saveFavs(favs);updateFavBtn();renderFavs();showToast('已收藏 ⭐')}
+function updateFavBtn(){var bf=document.getElementById('btnFav');var p=allP()[currPuzIdx];if(p&&isFaved(p)){bf.innerHTML='♥';bf.classList.add('faved')}else{bf.innerHTML='♡';bf.classList.remove('faved')}}
+var filterTags=[{tag:'全部',cls:'all'},{tag:'悬疑',cls:'suspense'},{tag:'温情',cls:'warmth'},{tag:'恐怖',cls:'horror'},{tag:'科幻',cls:'scifi'},{tag:'搞笑',cls:'funny'}];
+function buildFilter(){var fb=document.getElementById('filterBar');fb.innerHTML='';var pool=builtin.concat(loadUp());for(var i=0;i<filterTags.length;i++){var ft=filterTags[i];var count=ft.cls==='all'?pool.length:pool.filter(function(p){return p.tagClass===ft.cls}).length;var btn=document.createElement('div');btn.className='filter-btn'+(currFilter===ft.cls?' active':'');btn.textContent='#'+ft.tag+(ft.cls!=='all'?' '+count:'');btn.setAttribute('data-filter',ft.cls);btn.addEventListener('click',function(){setFilter(this.getAttribute('data-filter'))});fb.appendChild(btn)}}
+function setFilter(f){currFilter=f;buildFilter();used=[];currPuzIdx=-1;fl=false;document.getElementById('cardInner').classList.remove('flipped');cur=rnd();load(cur)}
+var cs=document.getElementById('cardScene'),ci=document.getElementById('cardInner'),cft=document.getElementById('cardFrontText'),cbt=document.getElementById('cardBackText'),tb=document.getElementById('tagBadge'),bn=document.getElementById('btnNext'),ct=document.getElementById('counter'),ub=document.getElementById('uploadBadge'),bdu=document.getElementById('btnDeleteUpload'),uc=document.getElementById('uploadCount');
+function rnd(){var a=allP();if(!a.length)return-1;if(used.length>=a.length)used=[];var i;do{i=Math.floor(Math.random()*a.length)}while(used.indexOf(i)!==-1);used.push(i);return i}
+function load(i){var a=allP();if(i<0||i>=a.length)return;var p=a[i];currPuzIdx=i;cft.textContent=p.front;cbt.textContent=p.back;tb.textContent='#'+p.tag;tb.className='tag-badge '+p.tagClass+(p.up?' uploaded':'');fl=false;ci.classList.remove('flipped');ct.textContent='No.'+used.length+' / '+a.length;ub.style.display=p.up?'block':'none';bdu.style.display=p.up?'block':'none';if(p.up)bdu.setAttribute('data-idx',i);updateFavBtn()}
+function nextP(){fl=false;ci.classList.remove('flipped');setTimeout(function(){cur=rnd();load(cur);randomChar()},150)}
+function flipC(){fl=!fl;fl?ci.classList.add('flipped'):ci.classList.remove('flipped');spawnSparkles()}
+function renderFavs(){var favs=loadFavs(),fl=document.getElementById('favList');if(!favs.length){fl.innerHTML='<div class="fav-empty">还没有收藏哦～<br>点卡片上的 ♡ 收藏喜欢的题目吧</div>';return}fl.innerHTML='';for(var i=0;i<favs.length;i++){var f=favs[i],d=document.createElement('div');d.className='fav-item';d.innerHTML='<span class="fav-tag">#'+f.tag+'</span><div class="fav-text">'+f.front+'</div><span class="fav-remove" data-i="'+i+'">✕</span>';d.addEventListener('click',function(e){if(e.target.classList.contains('fav-remove')){e.stopPropagation();var idx=parseInt(e.target.getAttribute('data-i'));favs.splice(idx,1);saveFavs(favs);renderFavs();updateFavBtn();return}var pool=allP();for(var j=0;j<pool.length;j++){if(pool[j].front===f.front&&pool[j].back===f.back){cur=j;used=[j];load(j);break}}closeFavs()});fl.appendChild(d)}}
+function openFavs(){document.getElementById('favSidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('open');renderFavs()}
+function closeFavs(){document.getElementById('favSidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open')}
+function exportUploads(){var up=loadUp();if(!up.length){showToast('没有投稿可导出');return}var blob=new Blob([JSON.stringify(up,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='haitang_uploads.json';a.click();showToast('已导出 '+up.length+' 道题')}
+function importUploads(file){var reader=new FileReader();reader.onload=function(){try{var data=JSON.parse(reader.result);if(!Array.isArray(data))throw new Error('格式错误');var up=loadUp(),added=0;for(var i=0;i<data.length;i++){if(!data[i].front||!data[i].back||!data[i].tag||!data[i].tagClass)continue;if(!data[i].up)data[i].up=true;up.push(data[i]);added++}saveUp(up);buildFilter();used=[];cur=rnd();load(cur);updateUC();showToast('已导入 '+added+' 道题')}catch(e){showToast('文件格式错误')}};reader.readAsText(file)}
+bdu.addEventListener('click',function(e){e.stopPropagation();var i=parseInt(bdu.getAttribute('data-idx'));if(isNaN(i))return;var a=allP();if(i>=0&&a[i]&&a[i].up){var up=loadUp(),ui=allP().indexOf(builtin.concat(loadUp())[i])-builtin.length;if(ui>=0&&ui<up.length){if(confirm('删除此题？')){up.splice(ui,1);saveUp(up);buildFilter();used=[];cur=rnd();load(cur);updateUC();showToast('已删除')}}}});
+function updateUC(){var n=loadUp().length;uc.textContent=n>0?'已有 '+n+' 道投稿混入题库':''}
+function toggleTheme(){theme=theme==='dark'?'light':'dark';document.documentElement.classList.toggle('light',theme==='light');localStorage.setItem('ht_theme',theme);document.getElementById('btnTheme').textContent=theme==='dark'?'🌙':'☀'}
+function setFontSize(sz){fontSize=sz;document.body.classList.remove('fs-sm','fs-lg');if(sz==='small')document.body.classList.add('fs-sm');if(sz==='large')document.body.classList.add('fs-lg');localStorage.setItem('ht_fs',sz)}
+function showGuide(){document.getElementById('guideOverlay').classList.remove('hidden')}
+function hideGuide(){document.getElementById('guideOverlay').classList.add('hidden');localStorage.setItem('ht_guided','1')}
+function showToast(m){var t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove()},3000)}
+function spawnSparkles(){var r=cs.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,clrs=['#c084fc','#f0d78c','#e879a8','#a78bfa','#d4a853'];for(var i=0;i<12;i++){var s=document.createElement('div');s.className='sparkle';var a=Math.PI*2*i/12,d=40+Math.random()*60;s.style.cssText='left:'+(cx+Math.cos(a)*d)+'px;top:'+(cy+Math.sin(a)*d)+'px;width:'+(3+Math.random()*5)+'px;height:'+s.style.width+';background:'+clrs[Math.floor(Math.random()*clrs.length)]+';border-radius:50%;position:fixed;z-index:999;pointer-events:none;animation:sparkleBurst '+(0.5+Math.random()*0.6)+'s ease-out forwards';document.body.appendChild(s);setTimeout(function(){s.remove()},1200)}}
+function copyFront(){var p=allP()[currPuzIdx];if(!p)return;navigator.clipboard.writeText('🔮 海龟汤谜题\n\n【汤面】'+p.front+'\n\n——来猜猜汤底是什么？').then(function(){showToast('已复制汤面到剪贴板 📋')}).catch(function(){showToast('复制失败')})}
+cw.addEventListener('click',cycleEmotion);
+cw.addEventListener('dblclick',function(e){e.preventDefault();nextChar();currentEmotion=0;cn.textContent=characters[charIndex].name});
+cs.addEventListener('click',flipC);bn.addEventListener('click',nextP);
+document.getElementById('btnFav').addEventListener('click',function(e){e.stopPropagation();var p=allP()[currPuzIdx];if(p)toggleFav(p)});
+document.getElementById('btnCopy').addEventListener('click',function(e){e.stopPropagation();copyFront()});
+document.getElementById('btnOpenFavs').addEventListener('click',function(e){e.stopPropagation();openFavs()});
+document.getElementById('favSidebarClose').addEventListener('click',closeFavs);
+document.getElementById('sidebarOverlay').addEventListener('click',closeFavs);
+document.getElementById('btnTheme').addEventListener('click',toggleTheme);
+document.getElementById('btnFSsmall').addEventListener('click',function(){setFontSize('small')});
+document.getElementById('btnFSmid').addEventListener('click',function(){setFontSize('mid')});
+document.getElementById('btnFSbig').addEventListener('click',function(){setFontSize('large')});
+document.getElementById('btnSettings').addEventListener('click',function(){document.getElementById('settingsOverlay').classList.add('open')});
+document.getElementById('settingsClose').addEventListener('click',function(){document.getElementById('settingsOverlay').classList.remove('open')});
+document.getElementById('btnExport').addEventListener('click',exportUploads);
+document.getElementById('btnImport').addEventListener('click',function(){document.getElementById('importFile').click()});
+document.getElementById('importFile').addEventListener('change',function(e){if(e.target.files[0])importUploads(e.target.files[0]);e.target.value=''});
+document.getElementById('btnClearFavs').addEventListener('click',function(){if(confirm('清空所有收藏？')){saveFavs([]);renderFavs();updateFavBtn();showToast('收藏夹已清空')}});
+document.getElementById('btnClearUploads').addEventListener('click',function(){if(confirm('清空所有投稿题目？')){saveUp([]);buildFilter();used=[];cur=rnd();load(cur);updateUC();showToast('投稿已清空')}});
+document.getElementById('btnResetGuide').addEventListener('click',function(){localStorage.removeItem('ht_guided');document.getElementById('settingsOverlay').classList.remove('open');showGuide()});
+document.getElementById('btnGuideOK').addEventListener('click',hideGuide);
+document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+document.addEventListener('keydown',function(e){if(document.getElementById('modalOverlay').classList.contains('open')||document.getElementById('settingsOverlay').classList.contains('open'))return;if(e.key===' '||e.code==='Space'){e.preventDefault();flipC()}if(e.key==='ArrowRight'||e.key==='n'){e.preventDefault();nextP()}if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevChar()}if(e.key==='Escape'){closeFavs()}});
+var mo=document.getElementById('modalOverlay'),ifr=document.getElementById('inputFront'),ibk=document.getElementById('inputBack'),fc=document.getElementById('frontCount'),bc=document.getElementById('backCount'),tpb=document.getElementById('tagPreviewBadge'),ms=document.getElementById('modalSubmit');
+function openModal(){mo.classList.add('open');ifr.value='';ibk.value='';fc.textContent='0 / 500';bc.textContent='0 / 800';tpb.textContent='悬疑';tpb.className='tag-preview-badge suspense';ms.disabled=true;ifr.focus()}
+function closeModal(){mo.classList.remove('open')}
+function updPrev(){var tv=autoTag(ifr.value,ibk.value);tpb.textContent=tv.tag;tpb.className='tag-preview-badge '+tv.cls;fc.textContent=ifr.value.length+' / 500';bc.textContent=ibk.value.length+' / 800';fc.classList.toggle('warn',ifr.value.length>490);bc.classList.toggle('warn',ibk.value.length>790);ms.disabled=ifr.value.trim().length<10||ibk.value.trim().length<10}
+function submitUp(){var f=ifr.value.trim(),b=ibk.value.trim();if(f.length<10){showToast('汤面至少10字');return}if(b.length<10){showToast('汤底至少10字');return}var tg=autoTag(f,b),up=loadUp();up.push({front:f,back:b,tag:tg.tag,tagClass:tg.cls,up:true});saveUp(up);buildFilter();closeModal();updateUC();showToast('投稿成功！');used=[];cur=rnd();load(cur)}
+document.getElementById('btnOpenUpload').addEventListener('click',openModal);
+document.getElementById('modalClose').addEventListener('click',closeModal);
+document.getElementById('modalCancel').addEventListener('click',closeModal);
+mo.addEventListener('click',function(e){if(e.target===mo)closeModal()});
+document.getElementById('modalSubmit').addEventListener('click',submitUp);
+ifr.addEventListener('input',updPrev);ibk.addEventListener('input',updPrev);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeFavs();document.getElementById('settingsOverlay').classList.remove('open')}});
+(function init(){
+theme=localStorage.getItem('ht_theme')||'dark';
+if(theme==='light'){document.documentElement.classList.add('light');document.getElementById('btnTheme').textContent='☀'}
+fontSize=localStorage.getItem('ht_fs')||'mid';setFontSize(fontSize);
+if(!localStorage.getItem('ht_guided'))showGuide();
+buildDots();buildFilter();cur=rnd();load(cur);updateUC();
+var pc=document.getElementById('particles'),clrs=['#c084fc','#f0d78c','#e879a8','#a78bfa','#8b5cf6','#d4a853'];
+for(var i=0;i<25;i++){var p=document.createElement('div');p.className='particle';p.style.cssText='left:'+Math.random()*100+'%;width:'+(1.5+Math.random()*3)+'px;height:'+p.style.width+';background:'+clrs[Math.floor(Math.random()*clrs.length)]+';animation-duration:'+(10+Math.random()*20)+'s;animation-delay:'+Math.random()*15+'s;opacity:'+(0.12+Math.random()*0.3);pc.appendChild(p)}
+})();
+</script>
+</body>
+</html>
